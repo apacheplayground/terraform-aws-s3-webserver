@@ -1,0 +1,230 @@
+name: Merge and Tag
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  merge-and-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Get PR author
+        id: get-pr-author
+        run: |
+          echo "PR_AUTHOR=$(echo \"${{ github.event.head_commit.author.name }}\")" >> $GITHUB_ENV
+
+      - name: Get PR title
+        id: get-pr-title
+        run: |
+          echo "PR_TITLE=$(echo \"${{ github.event.head_commit.message }}\")" >> $GITHUB_ENV
+
+      - name: Open PR
+        id: open-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+           --head "dev" \
+           --base "main" \
+           --title ${{ env.PR_TITLE }} \
+           --body ${{ env.PR_TITLE }}
+
+      - name: Merge PR
+        id: merge-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge --merge
+
+      - name: Switch to main branch
+        uses: actions/checkout@v4
+        if: ${{ steps.merge-pr.outcome == 'success' }}
+        with:
+          repository: ${{ github.repository }}
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git user
+        id: configure-git-user
+        if: ${{ steps.merge-pr.outcome == 'success' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Get latest commit message
+        id: get-latest-commit-message
+        if: ${{ steps.merge-pr.outcome == 'success' }}
+        run: |
+          echo "LATEST_COMMIT_MESSAGE=${{ env.PR_TITLE }}" >> $GITHUB_ENV
+          echo "LATEST_COMMIT_MESSAGE_2=$(echo \"${{ env.PR_TITLE }}\")" >> $GITHUB_ENV
+
+      - name: Generate next version tag
+        id: generate-next-version-tag
+        if: ${{ steps.merge-pr.outcome == 'success' }}
+        run: |
+          define_version_update_type() {
+            echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma"
+            MAJOR_VERSION_UPDATE_FOUND=$?
+
+            if [[ $MAJOR_VERSION_UPDATE_FOUND == "0" ]];
+            then
+              VERSION_UPDATE_TYPE=major
+            else
+              echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-mi"
+              MINOR_VERSION_UPDATE_FOUND=$?
+
+              if [[ $MINOR_VERSION_UPDATE_FOUND == "0" ]];
+              then
+                VERSION_UPDATE_TYPE=minor
+              else
+                echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "bugfix"
+                BUGFIX_VERSION_UPDATE_FOUND=$?
+
+                if [[ $BUGFIX_VERSION_UPDATE_FOUND == "0" ]];
+                then
+                  VERSION_UPDATE_TYPE=patch
+                else
+                  echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "hotfix"
+                  HOTFIX_VERSION_UPDATE_FOUND=$?
+
+                  if [[ $HOTFIX_VERSION_UPDATE_FOUND == "0" ]];
+                  then
+                    VERSION_UPDATE_TYPE=patch
+                  fi
+                fi
+              fi
+            fi
+          }
+
+          generate_next_version_tag() {
+            LAST_VERSION_TAG=$(git tag --list | tail -n 1 | sed -e "s|v||")
+
+            LAST_VERSION_MAJOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 1)
+            LAST_VERSION_MINOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 2)
+            LAST_VERSION_PATCH=$(echo $LAST_VERSION_TAG | cut -d '.' -f 3)
+
+            if [[ $VERSION_UPDATE_TYPE == "major" ]];
+            then
+              NEXT_VERSION_MAJOR=$((LAST_VERSION_MAJOR + 1))
+              NEXT_VERSION_MINOR=0
+              NEXT_VERSION_PATCH=0
+            elif [[ $VERSION_UPDATE_TYPE == "minor" ]];
+            then
+              NEXT_VERSION_MAJOR=$LAST_VERSION_MAJOR
+              NEXT_VERSION_MINOR=$((LAST_VERSION_MINOR + 1))
+              NEXT_VERSION_PATCH=0
+            else
+              NEXT_VERSION_MAJOR=$LAST_VERSION_MAJOR
+              NEXT_VERSION_MINOR=$LAST_VERSION_MINOR
+              NEXT_VERSION_PATCH=$((LAST_VERSION_PATCH + 1))
+            fi
+
+            NEXT_VERSION="$NEXT_VERSION_MAJOR.$NEXT_VERSION_MINOR.$NEXT_VERSION_PATCH"
+            echo $NEXT_VERSION
+          }
+
+          set +e
+          git fetch --tags
+          git tag --list | grep "v"
+          GIT_TAGS_FOUND=$?
+          echo "GIT_TAGS_FOUND=$GIT_TAGS_FOUND" >> $GITHUB_ENV
+
+          if [[ $GIT_TAGS_FOUND == "0" ]];
+          then
+            define_version_update_type
+            echo "Git tags found"
+            echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
+            echo CURRENT_VERSION_TAG=v"$(git tag --list | tail -n 1)"
+            echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
+            echo "NEXT_VERSION_TAG=$(generate_next_version_tag)" >> $GITHUB_ENV
+          else
+            echo "No Git tags found"
+            echo "Preparing to tag initial release version"
+            echo NEXT_VERSION_TAG=v1.0.0
+            echo "NEXT_VERSION_TAG=1.0.0" >> $GITHUB_ENV
+          fi
+
+          set -e
+
+      - name: Update changelog
+        id: update-changelog
+        if: ${{ steps.merge-pr.outcome == 'success' }}
+        run: |
+          DATE=$(date +%m-%d-%Y)
+
+          generate_changelog_message() {
+            if [[ $VERSION_UPDATE_TYPE == "major" ]];
+            then
+              CHANGELOG_HEADING="Feature (major)"
+              CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-ma: ||")
+            elif [[ $VERSION_UPDATE_TYPE == "minor" ]];
+            then
+              CHANGELOG_HEADING="Feature (minor)"
+              CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-mi: ||")
+            else
+              if [[ $VERSION_UPDATE_TYPE == "bugfix" ]];
+              then
+                CHANGELOG_HEADING=Bugfix
+                CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|bugfix: ||")
+              else
+                CHANGELOG_HEADING=Hotfix
+                CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|hotfix: ||")
+              fi
+            fi
+          }
+
+          if [[ ${{ env.GIT_TAGS_FOUND }} == "0" ]];
+          then
+            generate_changelog_message
+
+            cat >> /tmp/CHANGELOG.md<< EOF
+          # Changelog
+
+          All notable changes to this project will be documented in this file.
+
+          ## v${{ env.NEXT_VERSION_TAG }} ($DATE)
+
+          ### $CHANGELOG_HEADING
+          * $CHANGELOG_MESSAGE
+
+          EOF
+
+            cp CHANGELOG.md /tmp/CHANGELOG-2.md
+            sed -i '1,4d' /tmp/CHANGELOG-2.md
+            echo "$(cat /tmp/CHANGELOG-2.md)" >> /tmp/CHANGELOG.md
+            cat /tmp/CHANGELOG.md
+            mv /tmp/CHANGELOG.md CHANGELOG.md
+          else
+            cat >> CHANGELOG.md<< EOF
+          # Changelog
+
+          All notable changes to this project will be documented in this file.
+
+          ## v${{ env.NEXT_VERSION_TAG }} ($DATE)
+
+          * Initial release version
+
+          EOF
+          fi
+
+      - name: Commit and push updates
+        id: commit-and-push-updates
+        if: ${{ steps.merge-pr.outcome == 'success' }}        
+        run: |
+          git status
+          git add .
+          git commit -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
+          git push origin
+
+      - name: Tag and push next version
+        id: tag-and-push-next-version
+        if: ${{ steps.merge-pr.outcome == 'success' }}        
+        run: |
+          git tag -a v${{ env.NEXT_VERSION_TAG }} HEAD -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
+          git push origin v${{ env.NEXT_VERSION_TAG }}
+
+######################################## APACHEPLAYGROUND™ ########################################
