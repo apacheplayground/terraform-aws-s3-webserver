@@ -1,0 +1,653 @@
+
+#####################################################################
+# LOCALS
+#####################################################################
+
+locals {
+  bucket_name = var.environment == "" || var.environment == "default" || var.environment == "prod*" ? var.website_parent_domain_name : "${var.environment}.${var.website_parent_domain_name}"
+}
+
+#####################################################################
+# DOMAIN NAME ROUTE53 PUBLIC ZONE 
+#####################################################################
+
+data "aws_route53_zone" "website_parent_domain_name" {
+  name = var.website_parent_domain_name
+}
+
+#####################################################################
+# BUCKETS
+#####################################################################
+
+resource "aws_s3_bucket" "root_domain" {
+  bucket = local.bucket_name
+
+  tags = {
+   Terraform = true
+  }
+}
+
+resource "aws_s3_bucket" "sub_domain" {
+  bucket = "www.${local.bucket_name}"
+
+  tags = {
+   Terraform = true
+  }
+}
+
+#####################################################################
+# BUCKET ACLs
+#####################################################################
+
+resource "aws_s3_bucket_acl" "root_domain" {
+  bucket = aws_s3_bucket.root_domain.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_acl" "sub_domain" {
+  bucket = aws_s3_bucket.sub_domain.id
+  acl    = "public-read"
+}
+
+#####################################################################
+# BUCKET WEBSITE CONFIGURATIONS
+#####################################################################
+
+resource "aws_s3_bucket_website_configuration" "root_domain" {
+  bucket = aws_s3_bucket.root_domain.id
+
+  index_document {
+    suffix = var.index_document
+  }
+
+  error_document {
+    key = var.error_document
+  }
+
+/*
+  routing_rule {
+    condition {
+      key_prefix_equals = "docs/"
+    }
+    redirect {
+      replace_key_prefix_with = "documents/"
+    }
+  }*/
+}
+
+resource "aws_s3_bucket_website_configuration" "sub_domain" {
+  bucket = aws_s3_bucket.sub_domain.id
+
+  redirect_all_requests_to {
+    host_name = local.bucket_name
+    protocol  = "http"
+  }
+}
+
+#####################################################################
+# ROOT DOMAIN BUCKET LOGGING
+#####################################################################
+
+resource "aws_s3_bucket_logging" "root_domain" {
+  bucket        = aws_s3_bucket.root_domain.id
+  target_bucket = aws_s3_bucket.root_log_bucket.id
+  target_prefix = "log/"
+}
+
+resource "aws_s3_bucket" "root_log_bucket" {
+  bucket = "${local.bucket_name}-logs"
+ 
+  tags = {
+   Terraform = true
+  }
+}
+
+resource "aws_s3_bucket_acl" "root_log_bucket" {
+  bucket = aws_s3_bucket.root_log_bucket.id
+  acl    = "log-delivery-write"
+}
+
+#####################################################################
+# ROOT DOMAIN BUCKET PUBLIC ACCESS
+#####################################################################
+
+resource "aws_s3_bucket_public_access_block" "root_domain" {
+  bucket              = aws_s3_bucket.root_domain.id
+  block_public_acls   = false
+  block_public_policy = false
+
+/*
+  ignore_public_acls      = false
+  restrict_public_buckets = false 
+*/
+}
+
+#####################################################################
+# ROOT DOMAIN BUCKET POLICY
+#####################################################################
+
+resource "aws_s3_bucket_policy" "root_domain" {
+  bucket = aws_s3_bucket.root_domain.id
+  policy = data.aws_iam_policy_document.root_domain_public_access.json
+}
+
+data "aws_iam_policy_document" "root_domain_public_access" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:GetObject",]
+    resources = ["${aws_s3_bucket.root_domain.arn}/*",]
+
+    principals { 
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    /*  limit website access to certain ip addresses
+    Condition {
+      IpAddress {
+        aws:SourceIp = [
+          "[IP1]",
+          "[IP2]",
+           ......
+        ]
+      }
+    }
+    */
+  } 
+  
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:PutObject","s3:DeleteObject","s3:ListBucket",]
+    resources = ["${aws_s3_bucket.root_domain.arn}/*","${aws_s3_bucket.root_domain.arn}",]  
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+  }
+}
+
+#####################################################################
+# CLOUDFRONT DISTRIBUTIONS (WHITELIST GEO-RESTRICTION)
+#####################################################################
+
+resource "aws_cloudfront_distribution" "root_domain_distro_whitelist_geo_restriction" {
+  count = var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? 1 : 0
+
+  enabled             = true
+  default_root_object = var.index_document
+  aliases             = [local.bucket_name]
+  is_ipv6_enabled     = true
+
+  origin {
+    domain_name = aws_s3_bucket.root_domain.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.root_domain.bucket
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }       
+  }
+
+  default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.root_domain.id
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    min_ttl                = 0
+    max_ttl                = 30 * 60
+    default_ttl            = 5 * 60
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      =  module.ssl_cert.acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "whitelist"
+      locations        = var.website_whitelisted_countries
+    }
+  }
+
+  tags = {
+   Name      = "${local.bucket_name}-cf-distro"
+   Terraform = true
+  }
+}
+
+resource "aws_cloudfront_distribution" "sub_domain_distro_whitelist_geo_restriction" {
+  count = var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? 1 : 0
+
+  enabled         = true
+  aliases         = ["www.${local.bucket_name}"]
+  is_ipv6_enabled = true
+
+  origin {
+    domain_name = aws_s3_bucket.sub_domain.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.sub_domain.bucket
+
+     custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }     
+  }    
+
+/*
+  s3_origin_config {
+    domain_name            = 
+    origin_access_identity = 
+  }*/
+
+  default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.sub_domain.id  
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    min_ttl                = 0
+    max_ttl                = 30 * 60
+    default_ttl            = 5 * 60
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = module.ssl_cert.acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "whitelist"
+      locations        = var.website_whitelisted_countries
+    }
+  }
+
+  tags = {
+   Name      = "www.${local.bucket_name}-cf-distro"
+   Terraform = true
+  }
+}
+
+#####################################################################
+# CLOUDFRONT DISTRIBUTIONS (BLACKLIST GEO-RESTRICTION)
+#####################################################################
+
+resource "aws_cloudfront_distribution" "root_domain_distro_blacklist_geo_restriction" {
+  count = var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? 1 : 0
+
+  enabled             = true
+  default_root_object = var.index_document
+  aliases             = [local.bucket_name]
+  is_ipv6_enabled     = true
+
+  origin {
+    domain_name = aws_s3_bucket.root_domain.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.root_domain.bucket
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }       
+  }
+
+  default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.root_domain.id
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    min_ttl                = 0
+    max_ttl                = 30 * 60
+    default_ttl            = 5 * 60
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      =  module.ssl_cert.acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "blacklist"
+      locations        = var.website_blacklisted_countries
+    }
+  }
+
+  tags = {
+   Name      = "${local.bucket_name}-cf-distro"
+   Terraform = true
+  }
+}
+
+resource "aws_cloudfront_distribution" "sub_domain_distro_blacklist_geo_restriction" {
+  count = var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? 1 : 0
+
+  enabled         = true
+  aliases         = ["www.${local.bucket_name}"]
+  is_ipv6_enabled = true
+
+  origin {
+    domain_name = aws_s3_bucket.sub_domain.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.sub_domain.bucket
+
+     custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }     
+  }    
+
+/*
+  s3_origin_config {
+    domain_name            = 
+    origin_access_identity = 
+  }*/
+
+  default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.sub_domain.id  
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    min_ttl                = 0
+    max_ttl                = 30 * 60
+    default_ttl            = 5 * 60
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = module.ssl_cert.acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "blacklist"
+      locations        = var.website_blacklisted_countries
+    }
+  }
+
+  tags = {
+   Name      = "www.${local.bucket_name}-cf-distro"
+   Terraform = true
+  }
+}
+
+#####################################################################
+# CLOUDFRONT DISTRIBUTIONS (NON-GEO-RESTRICTED)
+#####################################################################
+
+resource "aws_cloudfront_distribution" "root_domain_distro_non_geo_restriction" {
+  count = var.enable_website_geo_restriction == false ? 1 : 0
+
+  enabled             = true
+  default_root_object = var.index_document
+  aliases             = [local.bucket_name]
+  is_ipv6_enabled     = true
+
+  origin {
+    domain_name = aws_s3_bucket.root_domain.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.root_domain.bucket
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }       
+  }
+
+  default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.root_domain.id
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    min_ttl                = 0
+    max_ttl                = 30 * 60
+    default_ttl            = 5 * 60
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      =  module.ssl_cert.acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+      locations        = []
+    }
+  }
+
+  tags = {
+   Name      = "${local.bucket_name}-cf-distro"
+   Terraform = true
+  }
+}
+
+resource "aws_cloudfront_distribution" "sub_domain_distro_non_geo_restriction" {
+  count = var.enable_website_geo_restriction == false ? 1 : 0
+
+  enabled         = true
+  aliases         = ["www.${local.bucket_name}"]
+  is_ipv6_enabled = true
+
+  origin {
+    domain_name = aws_s3_bucket.sub_domain.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.sub_domain.bucket
+
+     custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }     
+  }    
+
+/*
+  s3_origin_config {
+    domain_name            = 
+    origin_access_identity = 
+  }*/
+
+  default_cache_behavior {
+    target_origin_id       = aws_s3_bucket.sub_domain.id  
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    min_ttl                = 0
+    max_ttl                = 30 * 60
+    default_ttl            = 5 * 60
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = module.ssl_cert.acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+      locations        = []
+    }
+  }
+
+  tags = {
+   Name      = "www.${local.bucket_name}-cf-distro"
+   Terraform = true
+  }
+}
+
+
+#####################################################################
+# CLOUDFRONT DISTRIBUTION A-RECORDS
+#####################################################################
+
+locals{
+  root_domain_cf_distro_domain_name = (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? aws_cloudfront_distribution.root_domain_distro_whitelist_geo_restriction[0].domain_name : (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? aws_cloudfront_distribution.root_domain_distro_blacklist_geo_restriction[0].domain_name : (var.enable_website_geo_restriction == false ? aws_cloudfront_distribution.root_domain_distro_non_geo_restriction[0].domain_name : "")))
+  root_domain_cf_distro_hosted_zone = (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? aws_cloudfront_distribution.root_domain_distro_whitelist_geo_restriction[0].hosted_zone_id : (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? aws_cloudfront_distribution.root_domain_distro_blacklist_geo_restriction[0].hosted_zone_id : (var.enable_website_geo_restriction == false ? aws_cloudfront_distribution.root_domain_distro_non_geo_restriction[0].hosted_zone_id : "")))
+  
+  sub_domain_cf_distro_domain_name = (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? aws_cloudfront_distribution.sub_domain_distro_whitelist_geo_restriction[0].domain_name : (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? aws_cloudfront_distribution.sub_domain_distro_blacklist_geo_restriction[0].domain_name : (var.enable_website_geo_restriction == false ? aws_cloudfront_distribution.sub_domain_distro_non_geo_restriction[0].domain_name : "")))
+  sub_domain_cf_distro_hosted_zone = (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? aws_cloudfront_distribution.sub_domain_distro_whitelist_geo_restriction[0].hosted_zone_id : (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? aws_cloudfront_distribution.sub_domain_distro_blacklist_geo_restriction[0].hosted_zone_id : (var.enable_website_geo_restriction == false ? aws_cloudfront_distribution.sub_domain_distro_non_geo_restriction[0].hosted_zone_id : "")))
+}
+
+data "aws_route53_zone" "root_domain" {
+  name = var.website_parent_domain_name
+}
+
+resource "aws_route53_record" "root_domain" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = local.bucket_name
+  type    = "A"
+
+  alias {
+    name                   = local.root_domain_cf_distro_domain_name
+    zone_id                = local.root_domain_cf_distro_hosted_zone
+    evaluate_target_health = false                                      
+  }
+}
+
+resource "aws_route53_record" "sub_domain" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = "www.${local.bucket_name}"
+  type    = "A"
+
+  alias {
+    name                   = local.sub_domain_cf_distro_domain_name
+    zone_id                = local.sub_domain_cf_distro_hosted_zone   
+    evaluate_target_health = false                                       
+  }
+}
+
+#####################################################################
+# SSL CERT
+#####################################################################
+
+module "ssl_cert" {
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> 4.0"
+
+  providers = {
+    aws = aws.acm_provider
+  }
+
+  domain_name               = local.bucket_name
+  subject_alternative_names = ["*.${local.bucket_name}"]
+
+  wait_for_validation     = false
+  create_route53_records  = false
+  validation_record_fqdns = module.cnvr.validation_route53_record_fqdns
+
+  tags = {
+    Name     = "${local.bucket_name}-ssl-cert"
+    Terraform = true
+  }
+}
+
+module "cnvr" {
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> 4.0"
+
+  providers = {
+    aws = aws.route53_provider
+  }
+
+  create_certificate          = false
+  create_route53_records_only = true
+
+  distinct_domain_names = module.ssl_cert.distinct_domain_names
+  zone_id               = data.aws_route53_zone.website_parent_domain_name
+
+  acm_certificate_domain_validation_options = module.ssl_cert.acm_certificate_domain_validation_options
+}
+
+#####################################################################
+# WAF
+#####################################################################
+
+
+
+
+
+#####################################################################
+# WEBPAGES (ROOT MODULE SOURCE)
+#####################################################################
+
+locals{
+  root_module_webpages = var.webpages_upload_source == "root-module" ? fileset("${path.root}/webpages/", "**") : []
+}
+
+resource "aws_s3_object" "webpages" {
+  for_each = { for file in root_module_webpages : file => file }          #fileset("${path.root}/webpages/", "**")
+
+  bucket = aws_s3_bucket.root_domain.id
+  key    = each.value
+  source = "${path.root}/webpages/${each.value}"
+  etag   = filemd5("${path.root}/webpages/${each.value}")
+}
+
+######################################## APACHEPLAYGROUND™ ########################################

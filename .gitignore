@@ -1,0 +1,22 @@
+
+0-ftwo/
+
+*readme.txt
+
+*git-tags.txt
+
+*trblsht.txt
+
+*.pem
+
+*.terraform
+
+*.hcl
+
+*.info
+
+*.tfstate
+
+*.backup
+
+######################################## APACHEPLAYGROUND™ ########################################
