@@ -542,7 +542,6 @@ resource "aws_cloudfront_distribution" "sub_domain_distro_non_geo_restriction" {
   }
 }
 
-
 #####################################################################
 # CLOUDFRONT DISTRIBUTION A-RECORDS
 #####################################################################
