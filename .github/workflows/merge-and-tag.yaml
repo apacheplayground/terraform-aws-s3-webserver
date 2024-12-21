@@ -52,8 +52,8 @@ jobs:
         id: configure-git-user
         if: ${{ steps.merge-pr.outcome == 'success' }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name ${{ secrets.GIT_CONFIG_USER_NAME }}
+          git config user.email ${{ secrets.GIT_CONFIG_USER_EMAIL }}
 
       - name: Get latest commit message
         id: get-latest-commit-message
@@ -86,14 +86,14 @@ jobs:
 
                 if [[ $BUGFIX_VERSION_UPDATE_FOUND == "0" ]];
                 then
-                  VERSION_UPDATE_TYPE=patch
+                  VERSION_UPDATE_TYPE=bugfix
                 else
                   echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "hotfix"
                   HOTFIX_VERSION_UPDATE_FOUND=$?
 
                   if [[ $HOTFIX_VERSION_UPDATE_FOUND == "0" ]];
                   then
-                    VERSION_UPDATE_TYPE=patch
+                    VERSION_UPDATE_TYPE=hotfix
                   fi
                 fi
               fi
