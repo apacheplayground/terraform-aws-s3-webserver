@@ -4,7 +4,7 @@
 #####################################################################
 
 variable "aws_region" {
-  description = "The AWS region in which the AWS S3 webserver will be created."
+  description = "(Required) The AWS region in which the AWS S3 webserver will be created."
   type        = string
   default     = ""
 }
@@ -16,7 +16,7 @@ variable "environment" {
 }
 
 variable "website_parent_domain_name" {
-  description = "The parent domain name for the website. This parent domain name should already exist in AWS Route53 as a prerequisite."
+  description = "(Required) The parent domain name for the website. This parent domain name should already exist in AWS Route53 as a prerequisite."
   type        = string
   default     = ""
 }
