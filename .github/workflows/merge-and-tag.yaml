@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Configure git user
+      - name: Configure Git user
         id: configure-git-user
         run: |
           git config user.name ${{ secrets.GIT_CONFIG_USER_NAME }}
@@ -159,19 +159,19 @@ jobs:
             if [[ $VERSION_UPDATE_TYPE == "major" ]];
             then
               CHANGELOG_HEADING="Feature (major)"
-              CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-ma: ||")
+              CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-ma/||")
             elif [[ $VERSION_UPDATE_TYPE == "minor" ]];
             then
               CHANGELOG_HEADING="Feature (minor)"
-              CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-mi: ||")
+              CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-mi/||")
             else
               if [[ $VERSION_UPDATE_TYPE == "bugfix" ]];
               then
-                CHANGELOG_HEADING=Bugfix
-                CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|bugfix: ||")
+                CHANGELOG_HEADING=Patch (bugfix)
+                CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|bugfix/||")
               else
-                CHANGELOG_HEADING=Hotfix
-                CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|hotfix: ||")
+                CHANGELOG_HEADING=Patch (hotfix)
+                CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|hotfix/||")
               fi
             fi
           }

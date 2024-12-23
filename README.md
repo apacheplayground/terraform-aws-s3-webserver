@@ -54,5 +54,3 @@ See [examples](https://github.com/apacheplayground/terraform-aws-s3-webserver/tr
 ## Licensing
 
 This module is licensed under the Apache-2.0 license. See [LICENSE](./LICENSE) for reference.
-
-The module also uses other Terraform modules. See [ATTRIBUTIONS.md](./ATTRIBUTIONS.md) for a list.
