@@ -40,7 +40,7 @@ jobs:
            --body ${{ env.PR_TITLE }}
 
       - name: Merge PR
-        id: merge-pr
+        id: merge-pr      
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -183,7 +183,7 @@ jobs:
             cat >> /tmp/CHANGELOG.md<< EOF
           # Changelog
 
-          All notable changes to this project will be documented in this file.
+          All notable changes to this module will be documented in this file.
 
           ## ${{ env.NEXT_VERSION_TAG }} ($DATE)
 
@@ -201,7 +201,7 @@ jobs:
             cat >> CHANGELOG.md<< EOF
           # Changelog
 
-          All notable changes to this project will be documented in this file.
+          All notable changes to this module will be documented in this file.
 
           ## ${{ env.NEXT_VERSION_TAG }} ($DATE)
           
