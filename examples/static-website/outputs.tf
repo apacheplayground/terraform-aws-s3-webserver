@@ -1,11 +1,10 @@
 
-#####################################################################
-# WEBSITE URL
-#####################################################################
-
 output "website_url" {
-  description = "The URL of the website."
-  value       = module.webserver.website_url
+  value = module.webserver.website_url
+}
+
+output "webserver_bucket_id" {
+  value = module.webserver.webserver_bucket_id
 }
 
 ######################################## APACHEPLAYGROUND™ ########################################
