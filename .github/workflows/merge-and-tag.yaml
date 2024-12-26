@@ -167,10 +167,10 @@ jobs:
             else
               if [[ $VERSION_UPDATE_TYPE == "bugfix" ]];
               then
-                CHANGELOG_HEADING=Patch (bugfix)
+                CHANGELOG_HEADING="Patch (bugfix)"
                 CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|bugfix/||")
               else
-                CHANGELOG_HEADING=Patch (hotfix)
+                CHANGELOG_HEADING="Patch (hotfix)"
                 CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|hotfix/||")
               fi
             fi

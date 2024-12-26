@@ -65,6 +65,7 @@ variable "website_blacklisted_countries" {
   default     = []
 }
 
+/*
 #####################################################################
 # WEBPAGES VARIABLES
 #####################################################################
@@ -72,7 +73,8 @@ variable "website_blacklisted_countries" {
 variable "webpages_upload_source" {
   description = "The source from which webpages will be uploaded to the webserver. Valid values are 'root-module' and 'remote'. When set to 'root-module', webpages will be uploaded by placing them in a 'webpages' directory in the root module. When set to 'remote', webpages will have to be uploaded from a remote source e.g a GitHub repository (via a GitHub actions workflow which will have to be setup separately by the module user)."
   type        = string
-  default     = "root-module"
+  default     = ""
 }
+*/
 
 ######################################## APACHEPLAYGROUND™ ########################################

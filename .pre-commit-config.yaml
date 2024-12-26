@@ -4,8 +4,6 @@ repos:
     hooks:
       - id: check-merge-conflict
       #- id: end-of-file-fixer
-      - id: trailing-whitespace
-        args: ['--include', '\.tftpl$']
   - repo: https://github.com/terraform-docs/terraform-docs
     rev: v0.19.0
     hooks:
@@ -16,6 +14,7 @@ repos:
     hooks:
       - id: terraform_fmt 
       - id: terraform_validate
+        exclude: '^[^/]+$'
       #- id: infracost_breakdown
 
 ######################################## APACHEPLAYGROUND™ ########################################

@@ -1,16 +1,51 @@
 
+# used child models and their required aws versions
+#**************************************************
+# terraform-aws-modules/acm/aws = >= 4.40
+
+#####################################################################
+# TERRAFORM
+#####################################################################
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.40"
+    }
+  }
+}
+
+#####################################################################
+# PROVIDERS
+#####################################################################
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "acm"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "route53"
+  region = "us-east-1"
+}
+
 #####################################################################
 # WEBSERVER
 #####################################################################
 
 module "webserver" {
-  source = "apacheplayground/s3-webserver/aws"        #"../../"
+  source = "../../" #"apacheplayground/s3-webserver/aws"
 
-  # aws providers argument must be included
+  # all 3 aws providers must be included
   providers = {
-    aws                  = aws
-    aws.acm_provider     = aws.acm_provider
-    aws.route53_provider = aws.route53_provider
+    aws         = aws
+    aws.acm     = aws.acm
+    aws.route53 = aws.route53
   }
 
   aws_region                 = "us-east-1"
