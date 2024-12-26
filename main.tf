@@ -618,25 +618,4 @@ module "cnvr" {
 #####################################################################
 
 
-
-
-/*
-#####################################################################
-# WEBPAGES (ROOT MODULE SOURCE)
-#####################################################################
-
-locals {
-  root_module_webpages = var.webpages_upload_source == "root-module" ? fileset("${path.root}/webpages/", "**") : []
-}
-
-resource "aws_s3_object" "webpages" {
-  for_each = { for file in root_module_webpages : file => file } #fileset("${path.root}/webpages/", "**")
-
-  bucket = aws_s3_bucket.root_domain.id
-  key    = each.value
-  source = "${path.root}/webpages/${each.value}"
-  etag   = filemd5("${path.root}/webpages/${each.value}")
-}
-*/
-
 ######################################## APACHEPLAYGROUND™ ########################################
