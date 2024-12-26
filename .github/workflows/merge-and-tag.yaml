@@ -75,8 +75,8 @@ jobs:
         id: get-latest-commit-message
         if: ${{ steps.merge-pr.outcome == 'success' }}
         run: |
-          echo "LATEST_COMMIT_MESSAGE=${{ env.PR_TITLE }}" >> $GITHUB_ENV
-          echo "LATEST_COMMIT_MESSAGE_2=$(echo \"${{ env.PR_TITLE }}\")" >> $GITHUB_ENV
+          echo "LATEST_COMMIT_MESSAGE=${{ env.COMMIT_MESSAGE }}" >> $GITHUB_ENV
+          echo "LATEST_COMMIT_MESSAGE_2=$(echo \"${{ env.COMMIT_MESSAGE }}\")" >> $GITHUB_ENV
 
       - name: Generate next version tag
         id: generate-next-version-tag
