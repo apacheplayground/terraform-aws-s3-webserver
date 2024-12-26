@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.3 (12-26-2024)
+
+### Patch (Hotfix)
+* Update merge-and-tag workflow
+
 ## v1.0.2 (12-26-2024)
 
 ### Patch (hotfix)
