@@ -204,7 +204,8 @@ jobs:
           All notable changes to this project will be documented in this file.
 
           ## ${{ env.NEXT_VERSION_TAG }} ($DATE)
-
+          
+          ### Initial release
           * Initial release version
 
           EOF
