@@ -83,30 +83,29 @@ jobs:
         if: ${{ steps.merge-pr.outcome == 'success' }}
         run: |
           define_version_update_type() {
-            echo "Latest Commit Message:"
-            echo "======================"            
-            echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma"
+            echo "Latest Commit Message: ${{ env.LATEST_COMMIT_MESSAGE }}"
+            echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma" > /dev/null
             MAJOR_VERSION_UPDATE_FOUND=$?
 
             if [[ $MAJOR_VERSION_UPDATE_FOUND == "0" ]];
             then
               VERSION_UPDATE_TYPE=major
             else
-              echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-mi"
+              echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-mi" > /dev/null
               MINOR_VERSION_UPDATE_FOUND=$?
 
               if [[ $MINOR_VERSION_UPDATE_FOUND == "0" ]];
               then
                 VERSION_UPDATE_TYPE=minor
               else
-                echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "bugfix"
+                echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "bugfix" > /dev/null
                 BUGFIX_VERSION_UPDATE_FOUND=$?
 
                 if [[ $BUGFIX_VERSION_UPDATE_FOUND == "0" ]];
                 then
                   VERSION_UPDATE_TYPE=bugfix
                 else
-                  echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "hotfix"
+                  echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "hotfix" > /dev/null
                   HOTFIX_VERSION_UPDATE_FOUND=$?
 
                   if [[ $HOTFIX_VERSION_UPDATE_FOUND == "0" ]];
