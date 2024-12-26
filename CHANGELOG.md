@@ -1,6 +1,11 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this module will be documented in this file.
+
+## v1.0.5 (12-26-2024)
+
+### Patch (Hotfix)
+* Update merge-and-tag workflow
 
 ## v1.0.4 (12-26-2024)
 
