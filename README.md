@@ -8,7 +8,9 @@ The module comes with the following features:
 
 ## Usage
 
+### Basic usage
 ```hcl
+# default aws provider
 provider "aws" {
   region = "us-east-1"
 }
@@ -29,7 +31,7 @@ provider "aws" {
 module "webserver" {
   source  = "apacheplayground/s3-webserver/aws"
 
-  # all aws providers must be included
+  # all 3 aws providers must be included
   providers = {
     aws         = aws
     aws.acm     = aws.acm
@@ -37,7 +39,19 @@ module "webserver" {
   }
 
   aws_region                 = "us-east-1"
-  website_parent_domain_name = "example.com"
+  website_parent_domain_name = "your-domain-name.com"
+}
+```
+
+### Upload webpages to webserver (from root module)
+```hcl
+resource "aws_s3_object" "webpages" {
+  for_each = fileset("${path.root}/webpages-directory/", "**")
+
+  bucket = module.webserver.bucket_id
+  key    = each.value
+  source = "${path.root}//webpages-directory/${each.value}"
+  etag   = filemd5("${path.root}//webpages-directory/${each.value}")
 }
 ```
 
@@ -45,15 +59,6 @@ module "webserver" {
 
 See [examples](https://github.com/apacheplayground/terraform-aws-s3-webserver/tree/main/examples) for example usage scenarios.
 
-
-## Reporting bugs and contributing
-
-- Want to report a bug or request a feature? Please open [an issue](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new).
-
-
-## Licensing
-
-This module is licensed under the Apache-2.0 license. See [LICENSE](./LICENSE) for reference.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -107,15 +112,15 @@ This module is licensed under the Apache-2.0 license. See [LICENSE](./LICENSE) f
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | (Required) The AWS region in which the AWS S3 webserver will be created. | `string` | `""` | no |
-| <a name="input_enable_website_geo_restriction"></a> [enable\_website\_geo\_restriction](#input\_enable\_website\_geo\_restriction) | Whether or not to enable geo restriction for website access. | `bool` | `false` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | The environment in which the AWS S3 webserver will be deployed. | `string` | `""` | no |
-| <a name="input_error_document"></a> [error\_document](#input\_error\_document) | The full path to the error html document for the website. | `string` | `"error.html"` | no |
-| <a name="input_index_document"></a> [index\_document](#input\_index\_document) | The full path to the index html document for the website. | `string` | `"index.html"` | no |
-| <a name="input_website_blacklisted_countries"></a> [website\_blacklisted\_countries](#input\_website\_blacklisted\_countries) | The list of countries (by Alpha-2 code) that should be blacklisted from access to the website access. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is blacklist. The full list of country codes can be found [here](https://www.iso.org/obp/ui/#search). | `list(string)` | `[]` | no |
-| <a name="input_website_geo_restriction_type"></a> [website\_geo\_restriction\_type](#input\_website\_geo\_restriction\_type) | The type of geo restriction to implement for website access. Only valid if 'enable\_website\_geo\_restriction' is true. | `string` | `""` | no |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | (Required) The AWS region in which the S3 webserver will be created. | `string` | `""` | no |
+| <a name="input_enable_website_geo_restriction"></a> [enable\_website\_geo\_restriction](#input\_enable\_website\_geo\_restriction) | Whether or not to enable geographical restriction for website access. | `bool` | `false` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | The environment in which the S3 webserver will be deployed. | `string` | `""` | no |
+| <a name="input_error_document"></a> [error\_document](#input\_error\_document) | The full path to the error.html document for the website. | `string` | `"error.html"` | no |
+| <a name="input_index_document"></a> [index\_document](#input\_index\_document) | The full path to the index.html document for the website. | `string` | `"index.html"` | no |
+| <a name="input_website_blacklisted_countries"></a> [website\_blacklisted\_countries](#input\_website\_blacklisted\_countries) | The list of countries (by Alpha-2 code) that should be blacklisted from accessing the website. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is blacklist. The full list of country codes can be found https://www.iso.org/obp/ui/#search. | `list(string)` | `[]` | no |
+| <a name="input_website_geo_restriction_type"></a> [website\_geo\_restriction\_type](#input\_website\_geo\_restriction\_type) | The type of geographical restriction to implement for website access. Only valid if 'enable\_website\_geo\_restriction' is true. | `string` | `""` | no |
 | <a name="input_website_parent_domain_name"></a> [website\_parent\_domain\_name](#input\_website\_parent\_domain\_name) | (Required) The parent domain name for the website. This parent domain name should already exist in AWS Route53 as a prerequisite. | `string` | `""` | no |
-| <a name="input_website_whitelisted_countries"></a> [website\_whitelisted\_countries](#input\_website\_whitelisted\_countries) | The list of countries (by Alpha-2 code) that should be whitelisted for access to the website access. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is whitelist. The full list of country codes can be found [here](https://www.iso.org/obp/ui/#search). | `list(string)` | `[]` | no |
+| <a name="input_website_whitelisted_countries"></a> [website\_whitelisted\_countries](#input\_website\_whitelisted\_countries) | The list of countries (by Alpha-2 code) that should be whitelisted for accessing the website. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is whitelist. The full list of country codes can be found https://www.iso.org/obp/ui/#search. | `list(string)` | `[]` | no |
 
 ## Outputs
 
