@@ -137,14 +137,14 @@ jobs:
             define_version_update_type
             echo "Git tags found"
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
-            echo CURRENT_VERSION_TAG=v"$(git tag --list | tail -n 1)"
+            echo CURRENT_VERSION_TAG="$(git tag --list | tail -n 1)"
             echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
-            echo "NEXT_VERSION_TAG=$(generate_next_version_tag)" >> $GITHUB_ENV
+            echo "NEXT_VERSION_TAG=v$(generate_next_version_tag)" >> $GITHUB_ENV
           else
             echo "No Git tags found"
             echo "Preparing to tag initial release version"
             echo NEXT_VERSION_TAG=v1.0.0
-            echo "NEXT_VERSION_TAG=1.0.0" >> $GITHUB_ENV
+            echo "NEXT_VERSION_TAG=v1.0.0" >> $GITHUB_ENV
           fi
 
           set -e
@@ -158,19 +158,19 @@ jobs:
           generate_changelog_message() {
             if [[ $VERSION_UPDATE_TYPE == "major" ]];
             then
-              CHANGELOG_HEADING="Feature (major)"
+              CHANGELOG_HEADING="Feature (Major)"
               CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-ma/||")
             elif [[ $VERSION_UPDATE_TYPE == "minor" ]];
             then
-              CHANGELOG_HEADING="Feature (minor)"
+              CHANGELOG_HEADING="Feature (Minor)"
               CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|feat-mi/||")
             else
               if [[ $VERSION_UPDATE_TYPE == "bugfix" ]];
               then
-                CHANGELOG_HEADING="Patch (bugfix)"
+                CHANGELOG_HEADING="Patch (Bugfix)"
                 CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|bugfix/||")
               else
-                CHANGELOG_HEADING="Patch (hotfix)"
+                CHANGELOG_HEADING="Patch (Hotfix)"
                 CHANGELOG_MESSAGE=$(echo ${{ env.LATEST_COMMIT_MESSAGE }} | sed -e "s|hotfix/||")
               fi
             fi
@@ -185,7 +185,7 @@ jobs:
 
           All notable changes to this project will be documented in this file.
 
-          ## v${{ env.NEXT_VERSION_TAG }} ($DATE)
+          ## ${{ env.NEXT_VERSION_TAG }} ($DATE)
 
           ### $CHANGELOG_HEADING
           * $CHANGELOG_MESSAGE
@@ -203,7 +203,7 @@ jobs:
 
           All notable changes to this project will be documented in this file.
 
-          ## v${{ env.NEXT_VERSION_TAG }} ($DATE)
+          ## ${{ env.NEXT_VERSION_TAG }} ($DATE)
 
           * Initial release version
 
@@ -223,7 +223,7 @@ jobs:
         id: tag-and-push-next-version
         if: ${{ steps.merge-pr.outcome == 'success' }}        
         run: |
-          git tag -a v${{ env.NEXT_VERSION_TAG }} HEAD -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
-          git push origin v${{ env.NEXT_VERSION_TAG }}
+          git tag -a ${{ env.NEXT_VERSION_TAG }} HEAD -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
+          git push origin ${{ env.NEXT_VERSION_TAG }}
 
 ######################################## APACHEPLAYGROUND™ ########################################
