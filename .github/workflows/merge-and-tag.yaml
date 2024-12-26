@@ -78,11 +78,13 @@ jobs:
           echo "LATEST_COMMIT_MESSAGE=${{ env.COMMIT_MESSAGE }}" >> $GITHUB_ENV
           echo "LATEST_COMMIT_MESSAGE_2=$(echo \"${{ env.COMMIT_MESSAGE }}\")" >> $GITHUB_ENV
 
-      - name: Generate next version tag
-        id: generate-next-version-tag
+      - name: Define Version Update Type
+        id: define-version-update-type
         if: ${{ steps.merge-pr.outcome == 'success' }}
         run: |
           define_version_update_type() {
+            echo "Latest Commit Message:"
+            echo "======================"            
             echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma"
             MAJOR_VERSION_UPDATE_FOUND=$?
 
@@ -116,6 +118,10 @@ jobs:
             fi
           }
 
+      - name: Generate next version tag
+        id: generate-next-version-tag
+        if: ${{ steps.merge-pr.outcome == 'success' }}
+        run: |
           generate_next_version_tag() {
             LAST_VERSION_TAG=$(git tag --list | tail -n 1 | sed -e "s|v||")
 
@@ -145,14 +151,16 @@ jobs:
 
           set +e
           git fetch --tags
+          echo "Existing Versions:"
+          echo "=================="
           git tag --list | grep "v"
           GIT_TAGS_FOUND=$?
           echo "GIT_TAGS_FOUND=$GIT_TAGS_FOUND" >> $GITHUB_ENV
 
           if [[ $GIT_TAGS_FOUND == "0" ]];
           then
-            define_version_update_type
             echo "Git tags found"
+            define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
             echo CURRENT_VERSION_TAG="$(git tag --list | tail -n 1)"
             echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
