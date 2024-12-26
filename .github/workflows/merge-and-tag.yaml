@@ -146,15 +146,17 @@ jobs:
 
           set +e
           git fetch --tags
-          echo "Existing Versions:"
-          echo "=================="
-          git tag --list | grep "v"
+          git tag --list | grep "v" > /dev/null
           GIT_TAGS_FOUND=$?
           echo "GIT_TAGS_FOUND=$GIT_TAGS_FOUND" >> $GITHUB_ENV
 
           if [[ $GIT_TAGS_FOUND == "0" ]];
           then
             echo "Git tags found"
+            echo "Existing Versions:"
+            echo "------------------"
+            git tag --list | grep "v"
+
             define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
             echo CURRENT_VERSION_TAG="$(git tag --list | tail -n 1)"
