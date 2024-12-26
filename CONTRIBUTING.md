@@ -1,4 +1,18 @@
 
+
+
+## Reporting bugs and contributing
+
+- Want to report a bug or request a feature? Please open [an issue](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new).
+
+
+
+
+
+
+
+
+
 # Welcome to our contributing guide <!-- omit in toc -->
 
 Thank you for investing your time in contributing to our module!
