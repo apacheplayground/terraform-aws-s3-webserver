@@ -2,10 +2,6 @@
 
 Terraform module to create a webserver on an AWS S3 bucket.
 
-The module comes with the following features:
-  - Geographical restriction through whitelisting or blacklisting of select countries
-
-
 ## Usage
 
 ### Basic usage
@@ -43,7 +39,7 @@ module "webserver" {
 }
 ```
 
-### Upload webpages to webserver (from within root module)
+### Uploading webpages to webserver (from within root module)
 
 ```hcl
 resource "aws_s3_object" "webpages" {
@@ -56,11 +52,11 @@ resource "aws_s3_object" "webpages" {
 }
 ```
 
-### Upload webpages to webserver (from outside of root module)
+### Uploading webpages to webserver (from outside root module)
 
 ```hcl
 data "aws_s3_bucket" "webserver" {
-  bucket = var.webserver_bucket_id
+  bucket = var.webserver_bucket_name
 }
 
 resource "aws_s3_object" "webpages" {
