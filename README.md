@@ -73,6 +73,27 @@ resource "aws_s3_object" "webpages" {
 }
 ```
 
+### Enabling geo restriction
+```hcl
+module "webserver" {
+  source  = "apacheplayground/s3-webserver/aws"
+
+  # all 3 aws providers must be included
+  providers = {
+    aws         = aws
+    aws.acm     = aws.acm
+    aws.route53 = aws.route53
+  }
+
+  aws_region                 = "us-east-1"
+  website_parent_domain_name = "website-domain-name.com"
+
+  enable_website_geo_restriction = true
+  website_geo_restriction_type   = "whitelist"
+  website_whitelisted_countries  = ["US", "CA"]
+}
+```
+
 ## Examples
 
 See [examples](https://github.com/apacheplayground/terraform-aws-s3-webserver/tree/main/examples) for example usage scenarios.
@@ -135,10 +156,10 @@ See [examples](https://github.com/apacheplayground/terraform-aws-s3-webserver/tr
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment in which the S3 webserver will be deployed. | `string` | `""` | no |
 | <a name="input_error_document"></a> [error\_document](#input\_error\_document) | The full path to the error.html document for the website. | `string` | `"error.html"` | no |
 | <a name="input_index_document"></a> [index\_document](#input\_index\_document) | The full path to the index.html document for the website. | `string` | `"index.html"` | no |
-| <a name="input_website_blacklisted_countries"></a> [website\_blacklisted\_countries](#input\_website\_blacklisted\_countries) | The list of countries (by Alpha-2 code) that should be blacklisted from accessing the website. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is blacklist. The full list of country codes can be found https://www.iso.org/obp/ui/#search. | `list(string)` | `[]` | no |
+| <a name="input_website_blacklisted_countries"></a> [website\_blacklisted\_countries](#input\_website\_blacklisted\_countries) | The list of countries (by Alpha-2 code) that should be blacklisted from accessing the website. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is blacklist. The full list of country codes can be found at https://www.iso.org/obp/ui/#search. | `list(string)` | `[]` | no |
 | <a name="input_website_geo_restriction_type"></a> [website\_geo\_restriction\_type](#input\_website\_geo\_restriction\_type) | The type of geographical restriction to implement for website access. Only valid if 'enable\_website\_geo\_restriction' is true. | `string` | `""` | no |
 | <a name="input_website_parent_domain_name"></a> [website\_parent\_domain\_name](#input\_website\_parent\_domain\_name) | (Required) The parent domain name for the website. This parent domain name should already exist in AWS Route53 as a prerequisite. | `string` | `""` | no |
-| <a name="input_website_whitelisted_countries"></a> [website\_whitelisted\_countries](#input\_website\_whitelisted\_countries) | The list of countries (by Alpha-2 code) that should be whitelisted for accessing the website. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is whitelist. The full list of country codes can be found https://www.iso.org/obp/ui/#search. | `list(string)` | `[]` | no |
+| <a name="input_website_whitelisted_countries"></a> [website\_whitelisted\_countries](#input\_website\_whitelisted\_countries) | The list of countries (by Alpha-2 code) that should be whitelisted for accessing the website. Only valid if 'enable\_website\_geo\_restriction' is true and 'website\_geo\_restriction\_type' is whitelist. The full list of country codes can be found at https://www.iso.org/obp/ui/#search. | `list(string)` | `[]` | no |
 
 ## Outputs
 
