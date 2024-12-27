@@ -42,7 +42,6 @@ jobs:
             --title ${{ env.COMMIT_MESSAGE }} \
             --body ${{ env.COMMIT_MESSAGE }}
 
-
       - name: Check if Commit Author is Repo Admin User
         id: check-if-commit-author-is-repo-admin-user
         run: |
@@ -84,6 +83,7 @@ jobs:
         run: |
           define_version_update_type() {
             echo "Latest Commit Message: ${{ env.LATEST_COMMIT_MESSAGE }}"
+
             echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma" > /dev/null
             MAJOR_VERSION_UPDATE_FOUND=$?
 
