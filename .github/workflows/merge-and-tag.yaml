@@ -118,7 +118,7 @@ jobs:
           }
 
           generate_next_version_tag() {
-            LAST_VERSION_TAG=$(git tag --list | tail -n 1 | sed -e "s|v||")
+            LAST_VERSION_TAG=$(git tag --list --sort=creatordate | tail -n 1 | sed -e "s|v||")
 
             LAST_VERSION_MAJOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 1)
             LAST_VERSION_MINOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 2)
@@ -155,7 +155,7 @@ jobs:
             echo "Git tags found"
             echo "Existing Versions:"
             echo "------------------"
-            git tag --list | grep "v"
+            git tag --list --sort=creatordate | grep "v"
 
             define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE

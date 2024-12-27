@@ -39,19 +39,37 @@ module "webserver" {
   }
 
   aws_region                 = "us-east-1"
-  website_parent_domain_name = "your-domain-name.com"
+  website_parent_domain_name = "website-domain-name.com"
 }
 ```
 
-### Upload webpages to webserver (from root module)
+### Upload webpages to webserver (from within root module)
+
 ```hcl
 resource "aws_s3_object" "webpages" {
   for_each = fileset("${path.root}/webpages-directory/", "**")
 
   bucket = module.webserver.bucket_id
   key    = each.value
-  source = "${path.root}//webpages-directory/${each.value}"
-  etag   = filemd5("${path.root}//webpages-directory/${each.value}")
+  source = "${path.root}/webpages-directory/${each.value}"
+  etag   = filemd5("${path.root}/webpages-directory/${each.value}")
+}
+```
+
+### Upload webpages to webserver (from outside of root module)
+
+```hcl
+data "aws_s3_bucket" "webserver" {
+  bucket = var.webserver_bucket_id
+}
+
+resource "aws_s3_object" "webpages" {
+  for_each = fileset("${path.root}/webpages-directory/", "**")
+
+  bucket = data.aws_s3_bucket.webserver.id
+  key    = each.value
+  source = "${path.root}/webpages-directory/${each.value}"
+  etag   = filemd5("${path.root}/webpages-directory/${each.value}")
 }
 ```
 
