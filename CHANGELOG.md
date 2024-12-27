@@ -2,6 +2,11 @@
 
 All notable changes to this module will be documented in this file.
 
+## v1.0.13 (12-27-2024)
+
+### Patch (Hotfix)
+* Update README
+
 ## v1.0.12 (12-27-2024)
 
 ### Patch (Hotfix)
