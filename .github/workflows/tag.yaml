@@ -114,18 +114,18 @@ jobs:
 
             if [[ $VERSION_UPDATE_TYPE == "major" ]];
             then
-              NEXT_VERSION_MAJOR=$((LAST_VERSION_MAJOR + 1))
+              NEXT_VERSION_MAJOR=$((CURRENT_VERSION_MAJOR + 1))
               NEXT_VERSION_MINOR=0
               NEXT_VERSION_PATCH=0
             elif [[ $VERSION_UPDATE_TYPE == "minor" ]];
             then
-              NEXT_VERSION_MAJOR=$LAST_VERSION_MAJOR
-              NEXT_VERSION_MINOR=$((LAST_VERSION_MINOR + 1))
+              NEXT_VERSION_MAJOR=$CURRENT_VERSION_MAJOR
+              NEXT_VERSION_MINOR=$((CURRENT_VERSION_MINOR + 1))
               NEXT_VERSION_PATCH=0
             else
-              NEXT_VERSION_MAJOR=$LAST_VERSION_MAJOR
-              NEXT_VERSION_MINOR=$LAST_VERSION_MINOR
-              NEXT_VERSION_PATCH=$((LAST_VERSION_PATCH + 1))
+              NEXT_VERSION_MAJOR=$CURRENT_VERSION_MAJOR
+              NEXT_VERSION_MINOR=$CURRENT_VERSION_MINOR
+              NEXT_VERSION_PATCH=$((CURRENT_VERSION_PATCH + 1))
             fi
 
             NEXT_VERSION="$NEXT_VERSION_MAJOR.$NEXT_VERSION_MINOR.$NEXT_VERSION_PATCH"
@@ -147,7 +147,7 @@ jobs:
 
             define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
-            echo CURRENT_VERSION_TAG="$(git tag --list --sort=creatordate | tail -n 1)""
+            echo CURRENT_VERSION_TAG="$(git tag --list --sort=creatordate | tail -n 1)"
             echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
             echo "NEXT_VERSION_TAG=v$(generate_next_version_tag)" >> $GITHUB_ENV
           else
