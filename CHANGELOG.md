@@ -2,6 +2,11 @@
 
 All notable changes to this module will be documented in this file.
 
+## v1.0.14 (12-27-2024)
+
+### Patch (Hotfix)
+* Update gha workflows
+
 ## v..1 (12-27-2024)
 
 ### Patch (Hotfix)
