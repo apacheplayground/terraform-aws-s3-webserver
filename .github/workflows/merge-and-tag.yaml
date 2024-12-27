@@ -159,7 +159,7 @@ jobs:
 
             define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
-            echo CURRENT_VERSION_TAG="$(git tag --list --sort=creatordate | tail -n 1)""
+            echo CURRENT_VERSION_TAG="$(git tag --list --sort=creatordate | tail -n 1)"
             echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
             echo "NEXT_VERSION_TAG=v$(generate_next_version_tag)" >> $GITHUB_ENV
           else
