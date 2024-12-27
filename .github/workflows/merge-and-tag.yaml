@@ -118,11 +118,11 @@ jobs:
           }
 
           generate_next_version_tag() {
-            LAST_VERSION_TAG=$(git tag --list --sort=creatordate | tail -n 1 | sed -e "s|v||")
+            CURRENT_VERSION_TAG=$(git tag --list --sort=creatordate | tail -n 1 | sed -e "s|v||")
 
-            LAST_VERSION_MAJOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 1)
-            LAST_VERSION_MINOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 2)
-            LAST_VERSION_PATCH=$(echo $LAST_VERSION_TAG | cut -d '.' -f 3)
+            CURRENT_VERSION_MAJOR=$(echo $CURRENT_VERSION_TAG | cut -d '.' -f 1)
+            CURRENT_VERSION_MINOR=$(echo $CURRENT_VERSION_TAG | cut -d '.' -f 2)
+            CURRENT_VERSION_PATCH=$(echo $CURRENT_VERSION_TAG | cut -d '.' -f 3)
 
             if [[ $VERSION_UPDATE_TYPE == "major" ]];
             then
@@ -159,7 +159,7 @@ jobs:
 
             define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
-            echo CURRENT_VERSION_TAG="$(git tag --list | tail -n 1)"
+            echo CURRENT_VERSION_TAG="$(git tag --list --sort=creatordate | tail -n 1)""
             echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
             echo "NEXT_VERSION_TAG=v$(generate_next_version_tag)" >> $GITHUB_ENV
           else
@@ -168,7 +168,6 @@ jobs:
             echo NEXT_VERSION_TAG=v1.0.0
             echo "NEXT_VERSION_TAG=v1.0.0" >> $GITHUB_ENV
           fi
-
           set -e
 
       - name: Update changelog
