@@ -37,10 +37,22 @@ jobs:
         run: |
           echo "COMMIT_MESSAGE=$(echo \"${{ github.event.head_commit.message }}\")" >> $GITHUB_ENV
 
+      - name: Check if Commit Author is Repo Admin User
+        id: check-if-commit-author-is-repo-admin-user
+        run: |
+          if [[ ${{ env.COMMIT_AUTHOR}} == ${{ env.REPO_ADMIN_USER_NAME }} ]];
+          then
+            echo "COMMIT_AUTHOR is the REPO_ADMIN_USER_NAME"
+            echo "COMMIT_AUTHOR_2=repo-admin-user-name" >> $GITHUB_ENV
+          else
+            echo "COMMIT_AUTHOR is not the REPO_ADMIN_USER_NAME"
+            echo "COMMIT_AUTHOR_2=other" >> $GITHUB_ENV
+          fi
+
       - name: Switch back to main branch
         id: switch-back-to-main-br
         uses: actions/checkout@v4
-        if: ${{ env.COMMIT_AUTHOR != env.REPO_ADMIN_USER_NAME }}
+        if: ${{ env.COMMIT_AUTHOR_2 == 'other' }}
         with:
           repository: ${{ github.repository }}
           ref: main
@@ -55,31 +67,33 @@ jobs:
 
       - name: Generate next version tag
         id: generate-next-version-tag
-        if: ${{ steps.switch-back-to-main-br.outcome == 'success' }}
+        if: ${{ steps.merge-pr.outcome == 'success' }}
         run: |
           define_version_update_type() {
-            echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma"
+            echo "Latest Commit Message: ${{ env.LATEST_COMMIT_MESSAGE }}"
+
+            echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-ma" > /dev/null
             MAJOR_VERSION_UPDATE_FOUND=$?
 
             if [[ $MAJOR_VERSION_UPDATE_FOUND == "0" ]];
             then
               VERSION_UPDATE_TYPE=major
             else
-              echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-mi"
+              echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "feat-mi" > /dev/null
               MINOR_VERSION_UPDATE_FOUND=$?
 
               if [[ $MINOR_VERSION_UPDATE_FOUND == "0" ]];
               then
                 VERSION_UPDATE_TYPE=minor
               else
-                echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "bugfix"
+                echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "bugfix" > /dev/null
                 BUGFIX_VERSION_UPDATE_FOUND=$?
 
                 if [[ $BUGFIX_VERSION_UPDATE_FOUND == "0" ]];
                 then
                   VERSION_UPDATE_TYPE=bugfix
                 else
-                  echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "hotfix"
+                  echo "${{ env.LATEST_COMMIT_MESSAGE }}" | grep "hotfix" > /dev/null
                   HOTFIX_VERSION_UPDATE_FOUND=$?
 
                   if [[ $HOTFIX_VERSION_UPDATE_FOUND == "0" ]];
@@ -92,7 +106,7 @@ jobs:
           }
 
           generate_next_version_tag() {
-            LAST_VERSION_TAG=$(git tag --list | tail -n 1 | sed -e "s|v||")
+            LAST_VERSION_TAG=$(git tag --list --sort=creatordate | tail -n 1 | sed -e "s|v||")
 
             LAST_VERSION_MAJOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 1)
             LAST_VERSION_MINOR=$(echo $LAST_VERSION_TAG | cut -d '.' -f 2)
@@ -120,14 +134,18 @@ jobs:
 
           set +e
           git fetch --tags
-          git tag --list | grep "v"
+          git tag --list | grep "v" > /dev/null
           GIT_TAGS_FOUND=$?
           echo "GIT_TAGS_FOUND=$GIT_TAGS_FOUND" >> $GITHUB_ENV
 
           if [[ $GIT_TAGS_FOUND == "0" ]];
           then
-            define_version_update_type
             echo "Git tags found"
+            echo "Existing Versions:"
+            echo "------------------"
+            git tag --list --sort=creatordate | grep "v"
+
+            define_version_update_type
             echo VERSION_UPDATE_TYPE=$VERSION_UPDATE_TYPE
             echo CURRENT_VERSION_TAG="$(git tag --list | tail -n 1)"
             echo NEXT_VERSION_TAG=v"$(generate_next_version_tag)"
