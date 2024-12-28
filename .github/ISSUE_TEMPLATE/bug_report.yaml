@@ -1,0 +1,43 @@
+name: Bug Report
+description: Report a bug in the module
+title: "[BUG] "
+labels: ["bug"]
+assignees: ["ronfontebo"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill in the following details so we can fix it effectively.
+
+  - type: input
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: List the steps to reproduce the bug
+      placeholder: "1. Go to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: Describe what you expected to happen
+      placeholder: "The module should..."
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: Describe what actually happened
+      placeholder: "The module failed..."
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Specify your operating system and version, browser, etc.
+      placeholder: "Windows 10, Chrome 89"
+
+######################################## APACHEPLAYGROUND™ ########################################
