@@ -56,7 +56,7 @@ resource "aws_s3_object" "webpages" {
 
 ```hcl
 data "aws_s3_bucket" "webserver" {
-  bucket = var.webserver_bucket_name
+  bucket = "webserver_bucket_name"
 }
 
 resource "aws_s3_object" "webpages" {
