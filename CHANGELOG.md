@@ -2,6 +2,11 @@
 
 All notable changes to this module will be documented in this file.
 
+## v1.0.22 (01-12-2025)
+
+### Patch (Hotfix)
+* Update CONTRIBUTING.md
+
 ## v1.0.21 (01-12-2025)
 
 ### Patch (Hotfix)
