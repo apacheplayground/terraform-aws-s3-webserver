@@ -2,6 +2,11 @@
 
 All notable changes to this module will be documented in this file.
 
+## v1.0.17 (01-12-2025)
+
+### Patch (Hotfix)
+* Update issue template forms
+
 ## v1.0.16 (12-28-2024)
 
 ### Patch (Hotfix)
