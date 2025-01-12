@@ -2,6 +2,11 @@
 
 All notable changes to this module will be documented in this file.
 
+## v1.0.25 (01-12-2025)
+
+### Patch (Hotfix)
+* Update pull_request_template
+
 ## v1.0.24 (01-12-2025)
 
 ### Patch (Hotfix)
