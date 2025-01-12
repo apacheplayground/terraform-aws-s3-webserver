@@ -17,7 +17,7 @@ We support the following types of contribution:
 If you encounter a bug, we would love to hear about it. Please follow these steps:
 
 1. **Check Existing Issues**: Before creating a new bug report, please check if there is already an open issue for the same bug.
-2. **Open a New Bug Report**: If the bug is new, please fill out our [Bug Report Form](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new?template=bug_report.yml). or [here](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new?assignees=ronfontebo&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D).
+2. **Open a New Bug Report**: If the bug is new, please fill out our [Bug Report Form](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new?assignees=ronfontebo&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D).
 3. **Provide Details**: Include as much detail as possible, such as steps to reproduce the bug, expected behavior, and actual behavior.
 
 ## How to Submit a Feature Request
@@ -25,7 +25,7 @@ If you encounter a bug, we would love to hear about it. Please follow these step
 If you have an idea for a new feature, we'd love to hear about it. Please follow these steps:
 
 1. **Check Existing Requests**: Before creating a new feature request, please check if there is already an open issue for the same feature.
-2. **Open a New Feature Request**: If your feature request is new, please fill out our [Feature Request Form](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new?template=feature_request.yml). or [here](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new?assignees=ronfontebo&labels=enhancement&projects=&template=feature_request.yaml&title=%5BFeature+Request%5D)
+2. **Open a New Feature Request**: If your feature request is new, please fill out our [Feature Request Form](https://github.com/apacheplayground/terraform-aws-s3-webserver/issues/new?assignees=ronfontebo&labels=enhancement&projects=&template=feature_request.yaml&title=%5BFeature+Request%5D).
 3. **Provide Details**: Include as much detail as possible, such as the use case, benefits, and any additional context or examples.
 
 ## How to Submit a Pull Request :hammer_and_wrench:
