@@ -1,4 +1,4 @@
-name: CICD Non-admin
+name: CICD Non-admin 2
 
 on:
   pull_request:
