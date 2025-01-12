@@ -45,6 +45,6 @@ Please follow these steps to submit a pull request:
 
 ## Code of Conduct
 
-Please note that this project adheres to a [Code of Conduct](https://github.com/apacheplayground/terraform-aws-s3-webserver/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+Please note that this project adheres to a [Code of Conduct](https://github.com/apacheplayground/terraform-aws-s3-webserver/blob/ee6891b2f5696e167ed6806d02d0298bfac23057/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 Thank you for your contributions!
