@@ -1,6 +1,6 @@
 name: Bug Report
-description: Report a bug in this module'
-title: "[BUG] <Descriptive Title>"
+description: Report a bug in this module.
+title: "[BUG]"
 labels: ["bug"]
 assignees: ["ronfontebo"]
 
