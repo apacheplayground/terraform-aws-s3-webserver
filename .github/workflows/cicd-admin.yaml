@@ -1,4 +1,4 @@
-name: Merge and Tag
+name: CICD Admin
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - dev
 
 jobs:
-  merge-and-tag:
+  cicd-admin:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -31,8 +31,21 @@ jobs:
         run: |
           echo "COMMIT_MESSAGE=$(echo \"${{ github.event.head_commit.message }}\")" >> $GITHUB_ENV
 
+      - name: Check if Commit Author is Repo Admin User
+        id: check-if-commit-author-is-repo-admin-user
+        run: |
+          if [[ ${{ env.COMMIT_AUTHOR }} == ${{ env.REPO_ADMIN_USER_NAME }} ]];
+          then
+            echo "COMMIT_AUTHOR is the REPO_ADMIN_USER_NAME"
+            echo "COMMIT_AUTHOR_2=repo-admin-user-name" >> $GITHUB_ENV
+          else
+            echo "COMMIT_AUTHOR is not the REPO_ADMIN_USER_NAME"
+            echo "COMMIT_AUTHOR_2=other" >> $GITHUB_ENV
+          fi
+
       - name: Open PR
-        id: open-pr      
+        id: open-pr
+        if: ${{ env.COMMIT_AUTHOR_2 == 'repo-admin-user-name' }}       
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -42,21 +55,9 @@ jobs:
             --title ${{ env.COMMIT_MESSAGE }} \
             --body ${{ env.COMMIT_MESSAGE }}
 
-      - name: Check if Commit Author is Repo Admin User
-        id: check-if-commit-author-is-repo-admin-user
-        run: |
-          if [[ ${{ env.COMMIT_AUTHOR}} == ${{ env.REPO_ADMIN_USER_NAME }} ]];
-          then
-            echo "COMMIT_AUTHOR is the REPO_ADMIN_USER_NAME"
-            echo "COMMIT_AUTHOR_2=repo-admin-user-name" >> $GITHUB_ENV
-          else
-            echo "COMMIT_AUTHOR is not the REPO_ADMIN_USER_NAME"
-            echo "COMMIT_AUTHOR_2=other" >> $GITHUB_ENV
-          fi
-
       - name: Merge PR
         id: merge-pr
-        if: ${{ env.COMMIT_AUTHOR_2 == 'repo-admin-user-name' }}
+        if: ${{ steps.open-pr.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -172,7 +173,7 @@ jobs:
 
       - name: Update changelog
         id: update-changelog
-        if: ${{ steps.merge-pr.outcome == 'success' }}
+        if: ${{ steps.generate-next-version-tag.outcome == 'success' }}
         run: |
           DATE=$(date +%m-%d-%Y)
 
@@ -234,16 +235,16 @@ jobs:
 
       - name: Commit and Push Updates
         id: commit-and-push-updates
-        if: ${{ steps.merge-pr.outcome == 'success' }}        
+        if: ${{ steps.update-changelog.outcome == 'success' }}        
         run: |
           git status
           git add .
           git commit -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
           git push origin
 
-      - name: Tag and push next version
-        id: tag-and-push-next-version
-        if: ${{ steps.merge-pr.outcome == 'success' }}        
+      - name: Tag and Push Next Version Tag
+        id: tag-and-push-next-version-tag
+        if: ${{ steps.commit-and-push-updates.outcome == 'success' }}        
         run: |
           git tag -a ${{ env.NEXT_VERSION_TAG }} HEAD -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
           git push origin ${{ env.NEXT_VERSION_TAG }}

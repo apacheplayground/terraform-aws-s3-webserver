@@ -1,6 +1,6 @@
 
 name: Feature Request
-description: Suggest a new feature or enhancement for the module.
+description: Suggest a new feature or enhancement for this module.
 title: "[Feature Request] "
 labels: ["enhancement"]
 assignees: ["ronfontebo"]
@@ -9,9 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Feature Request
-
-        Thank you for suggesting a new feature! Please fill out the following details so we can understand your request.
+        Thank you for suggesting a new feature for our module! Please fill out the following details so we can understand your request.
 
   - type: input
     id: feature_title
@@ -27,7 +25,7 @@ body:
     attributes:
       label: Feature Description
       description: Please describe the feature you would like to see, including any benefits and use cases.
-      placeholder: "Detailed description of the feature"
+      placeholder: "Detailed description of the feature.."
     validations:
       required: true
 

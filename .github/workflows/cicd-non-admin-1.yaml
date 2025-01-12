@@ -1,0 +1,58 @@
+name: CICD Non-admin 1
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  cicd-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Call Repo Admin user
+        id: call-repo-admin-user
+        run: |
+          git config user.name ${{ secrets.REPO_ADMIN_USER_NAME }}
+          git config user.email ${{ secrets.REPO_ADMIN_USER_EMAIL }}
+
+          echo "::add-mask::${{ secrets.REPO_ADMIN_USER_NAME }}"
+          echo "REPO_ADMIN_USER_NAME=${{ secrets.REPO_ADMIN_USER_NAME }}" >> $GITHUB_ENV
+
+      - name: Get Commit Author
+        id: get-commit-author
+        run: |
+          echo "COMMIT_AUTHOR=$(echo \"${{ github.event.head_commit.author.name }}\")" >> $GITHUB_ENV
+
+      - name: Get Commit Message
+        id: get-commit-message
+        run: |
+          echo "COMMIT_MESSAGE=$(echo \"${{ github.event.head_commit.message }}\")" >> $GITHUB_ENV
+
+      - name: Check if Commit Author is Repo Admin User
+        id: check-if-commit-author-is-repo-admin-user
+        run: |
+          if [[ ${{ env.COMMIT_AUTHOR }} == ${{ env.REPO_ADMIN_USER_NAME }} ]];
+          then
+            echo "COMMIT_AUTHOR is the REPO_ADMIN_USER_NAME"
+            echo "COMMIT_AUTHOR_2=repo-admin-user-name" >> $GITHUB_ENV
+          else
+            echo "COMMIT_AUTHOR is not the REPO_ADMIN_USER_NAME"
+            echo "COMMIT_AUTHOR_2=other" >> $GITHUB_ENV
+          fi
+
+      - name: Open PR
+        id: open-pr
+        if: ${{ env.COMMIT_AUTHOR_2 == 'other' }}       
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --head "dev" \
+            --base "main" \
+            --title ${{ env.COMMIT_MESSAGE }} \
+            --body ${{ env.COMMIT_MESSAGE }}
+
+######################################## APACHEPLAYGROUND™ ########################################

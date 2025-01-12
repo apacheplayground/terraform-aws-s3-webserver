@@ -5,8 +5,6 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Description
-
         Please provide a summary of the changes made in this PR. Include any relevant context and the issue that this PR addresses.
 
   - type: input
@@ -23,7 +21,7 @@ body:
     attributes:
       label: PR Description
       description: Describe the changes in detail.
-      placeholder: "Detailed description of changes"
+      placeholder: "Detailed description of the changes"
     validations:
       required: true
 
@@ -42,14 +40,14 @@ body:
       label: Type of Change
       description: Select the type of change this PR introduces.
       options:
+        - label: New Feature
+          value: feat
         - label: Bug Fix
           value: bugfix
-        - label: New Feature
-          value: feature
+        - label: Hotfix
+          value: hotfix
         - label: Documentation Update
           value: docs
-        - label: Other
-          value: other
     validations:
       required: true
 
