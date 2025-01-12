@@ -1,6 +1,7 @@
 name: Pull Request
 description: Use this form to submit a pull request.
-title: "[PR] "
+title: "[PR]"
+
 body:
   - type: markdown
     attributes:
