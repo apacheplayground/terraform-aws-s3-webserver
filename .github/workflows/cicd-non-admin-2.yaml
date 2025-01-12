@@ -1,4 +1,4 @@
-name: Tag
+name: CICD Non-admin
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  approve-merge-and-tag:
+  cicd-non-admin:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
@@ -60,14 +60,14 @@ jobs:
 
       - name: Get latest commit message
         id: get-latest-commit-message
-        if: ${{ steps.switch-back-to-main-br.outcome == 'success' }} 
+        if: ${{ steps.switch-back-to-main-br.outcome == 'success' }}
         run: |
           echo "LATEST_COMMIT_MESSAGE=${{ env.COMMIT_MESSAGE }}" >> $GITHUB_ENV
           echo "LATEST_COMMIT_MESSAGE_2=$(echo \"${{ env.COMMIT_MESSAGE }}\")" >> $GITHUB_ENV
 
       - name: Generate next version tag
         id: generate-next-version-tag
-        if: ${{ steps.merge-pr.outcome == 'success' }}
+        if: ${{ steps.get-latest-commit-message.outcome == 'success' }}        
         run: |
           define_version_update_type() {
             echo "Latest Commit Message: ${{ env.LATEST_COMMIT_MESSAGE }}"
@@ -160,7 +160,7 @@ jobs:
 
       - name: Update changelog
         id: update-changelog
-        if: ${{ steps.switch-back-to-main-br.outcome == 'success' }}
+        if: ${{ steps.generate-next-version-tag.outcome == 'success' }}
         run: |
           DATE=$(date +%m-%d-%Y)
 
@@ -222,16 +222,16 @@ jobs:
 
       - name: Commit and Push Updates
         id: commit-and-push-updates
-        if: ${{ steps.switch-back-to-main-br.outcome == 'success' }}  
+        if: ${{ steps.update-changelog.outcome == 'success' }}        
         run: |
           git status
           git add .
           git commit -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
           git push origin
 
-      - name: Tag and push next version
-        id: tag-and-push-next-version
-        if: ${{ steps.switch-back-to-main-br.outcome == 'success' }}  
+      - name: Tag and Push Next Version Tag
+        id: tag-and-push-next-version-tag
+        if: ${{ steps.commit-and-push-updates.outcome == 'success' }}        
         run: |
           git tag -a ${{ env.NEXT_VERSION_TAG }} HEAD -m ${{ env.LATEST_COMMIT_MESSAGE_2 }}
           git push origin ${{ env.NEXT_VERSION_TAG }}
