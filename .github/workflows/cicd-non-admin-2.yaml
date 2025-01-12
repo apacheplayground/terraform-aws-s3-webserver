@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  cicd-non-admin:
+  cicd-non-admin-2:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
