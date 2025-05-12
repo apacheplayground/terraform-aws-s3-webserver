@@ -1,0 +1,47 @@
+name: CICD Non-admin 1
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  cicd-non-admin-1:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'ronfontebo' }}
+    steps:
+      - name: Checkout Repo
+        id: checkout-repo
+        uses: actions/checkout@v4
+
+      - name: Get Commit Author
+        id: get-commit-author
+        if: ${{ steps.checkout-repo.outcome == 'success' }}        
+        run: |
+          echo "COMMIT_AUTHOR=$(echo \"${{ github.event.head_commit.author.name }}\")" >> $GITHUB_ENV
+
+      - name: Get Commit Message
+        id: get-commit-message
+        if: ${{ steps.get-commit-author.outcome == 'success' }}    
+        run: |
+          echo "COMMIT_MESSAGE=$(echo \"${{ github.event.head_commit.message }}\")" >> $GITHUB_ENV
+
+      - name: Open PR
+        id: open-pr
+        if: ${{ steps.get-commit-message.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --head "dev" \
+            --base "main" \
+            --title ${{ env.COMMIT_MESSAGE }} \
+            --body ${{ env.COMMIT_MESSAGE }} > /tmp/pr-url.txt
+          
+      #- name: Notify Repo Admin
+      #  id: notify-repo-admin
+      #  if: ${{ steps.open-pr.outcome == 'success' }}
+      #  run: |
+      #    echo $(cat /tmp/pr-url.txt)
+          
+######################################## APACHEPLAYGROUND™ ########################################

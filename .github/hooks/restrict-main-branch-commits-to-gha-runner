@@ -1,0 +1,16 @@
+#!/bin/sh
+
+CURRENT_BRANCH=$(git branch --show-current)
+SHELL_USERNAME=$(whoami)
+
+if [[ $CURRENT_BRANCH == "main" && $SHELL_USERNAME != "runner" ]];
+then
+  echo "|"
+  echo "| Error: Invalid commit source"
+  echo "|"
+  echo "| You can only commit changes to this branch from a GHA runner via a GHA workflow."
+  echo "|" 
+  exit 1
+fi
+
+######################################## APACHEPLAYGROUND™ ########################################

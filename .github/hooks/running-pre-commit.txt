@@ -1,0 +1,103 @@
+
+
+
+===>$  pip install pre-commit
+
+
+===>$  pre-commit --version
+
+
+===>$  pre-commit install
+
+
+===>$  pre-commit run --all-files
+
+
+
+------------------------------------------------
+
+
+
+pre-commit run <hook_id>.
+
+
+
+pre-commit run check-commit-message-format
+
+------------------------------------------------
+
+
+pre-commit run --hook-stage STAGE
+
+
+
+pre-commit run \
+  --hook-stage commit-msg \
+  --commit-msg-filename .github/hooks/check-commit-message-format
+
+
+
+
+
+
+
+
+
+
+      - id: check-commit-message-format
+        name: Check commit message format
+        entry: sh .github/hooks/check-commit-message-format
+        language: system
+        stages: [commit-msg]
+        args: ["--hook-stage=commit-msg", "--commit-msg-filename=.github/hooks/check-commit-message-format"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+      - id: check-commit-message-format
+        name: Check commit message format
+        entry: sh .github/hooks/check-commit-message-format
+        language: system
+        types: [file]
+        stages: [commit-msg]
+        args: []
+
+
+
+
+
+
+
+
+      - id: check-commit-message-format
+        name: Check commit message format
+        entry: sh .github/hooks/check-commit-message-format
+        language: system
+        stages: [commit-msg]
+        args: ["--hook-stage=commit-msg", "--commit-msg-filename=.github/hooks/check-commit-message-format"]
+
+
+
+
+ --hook-stage commit-msg \
+  --commit-msg-filename .github/hooks/check-commit-message-format
+
+
+
+
+
+
+
+
+
+
+

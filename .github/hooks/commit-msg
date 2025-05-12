@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Validate_commit_msg hook
+#*************************
+COMMIT_MSG=$(cat "$1")
+
+if ! echo "$COMMIT_MSG" | grep -Eq "^(feat-ma|feat-mi|bugfix|hotfix|docsfix)/.+"; 
+then
+  echo "|"
+  echo "| Error: Invalid commit message"
+  echo "|"
+  echo "| Commit message must follow the format '<type>/<message>'."
+  echo "| Where 'type' can be feat-ma, feat-mi, bugfix, hotfix or docsfix."
+  echo "|"
+  exit 1
+fi
+
+######################################## APACHEPLAYGROUND™ ########################################
