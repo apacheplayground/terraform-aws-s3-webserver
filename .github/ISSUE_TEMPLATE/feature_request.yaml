@@ -1,0 +1,50 @@
+
+name: Feature Request
+description: Suggest a new feature or enhancement for this module.
+title: "[Feature Request]"
+labels: ["enhancement"]
+assignees: ["ronfontebo"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature for our module! Please fill out the following details so we can understand your request.
+
+  - type: input
+    id: feature_title
+    attributes:
+      label: Feature Title
+      description: A short, clear title for your feature request.
+      placeholder: "Feature title"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: Please describe the feature you would like to see, including any benefits and use cases.
+      placeholder: "Detailed description of the feature.."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Provide any additional context or screenshots to explain your request further.
+      placeholder: "Additional context and details"
+    validations:
+      required: false
+
+  - type: input
+    id: related_issues
+    attributes:
+      label: Related Issues
+      description: If applicable, list any related issues or pull requests.
+      placeholder: "#123, #456"
+    validations:
+      required: false
+
+######################################## APACHEPLAYGROUND™ ########################################

@@ -1,0 +1,55 @@
+name: Pull Request
+description: Use this form to submit a pull request.
+title: "[PR]"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide a summary of the changes made in this PR. Include any relevant context and the issue that this PR addresses.
+
+  - type: input
+    id: pr_title
+    attributes:
+      label: PR Title
+      description: Provide a title for your pull request.
+      placeholder: "Brief and clear PR title"
+    validations:
+      required: true
+
+  - type: textarea
+    id: pr_description
+    attributes:
+      label: PR Description
+      description: Describe the changes in detail.
+      placeholder: "Detailed description of the changes"
+    validations:
+      required: true
+
+  - type: input
+    id: issue_number
+    attributes:
+      label: Issue Number
+      description: Reference the issue number this PR addresses (if any).
+      placeholder: "#123"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: change_type
+    attributes:
+      label: Type of Change
+      description: Select the type of change this PR introduces.
+      options:
+        - label: New Feature
+          value: feat
+        - label: Bug Fix
+          value: bugfix
+        - label: Hotfix
+          value: hotfix
+        - label: Documentation Update
+          value: docs
+    validations:
+      required: true
+
+######################################## APACHEPLAYGROUND™ ########################################

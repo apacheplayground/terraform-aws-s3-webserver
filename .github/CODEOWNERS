@@ -1,0 +1,21 @@
+# Use this file to define individuals or teams (codeowners) that are responsible for code in a repository. 
+# These code owners will be automatically requested for review when changes are made to the files they own.
+# Read more: <https://help.github.com/articles/about-codeowners/>
+#
+# Order is important: the last matching pattern has the highest precedence
+
+# These individuals will be the default owners for everything
+*                    @apacheplayground/ronfontebo
+
+# These individuals must review any changes to the ./github directory
+.github/*            @apacheplayground/ronfontebo
+
+# These individuals must review any changes to standard context definition,
+# but some changes can be rubber-stamped.
+**/*.tf              @apacheplayground/ronfontebo
+README.md            @apacheplayground/ronfontebo
+
+# These individuals must review all changes to CODEOWNERS
+.github/CODEOWNERS   @apacheplayground/ronfontebo
+
+######################################## APACHEPLAYGROUND™ ########################################
