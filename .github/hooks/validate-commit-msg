@@ -4,13 +4,13 @@
 #*************************
 COMMIT_MSG=$(cat "$1")
 
-if ! echo "$COMMIT_MSG" | grep -Eq "^(feat-ma|feat-mi|bugfix|hotfix|docsfix)/.+"; 
+if ! echo "$COMMIT_MSG" | grep -Eq "^(feat-ma|feat-mi|bugfix|hotfix|docfix)/.+"; 
 then
   echo "|"
   echo "| Error: Invalid commit message"
   echo "|"
   echo "| Commit message must follow the format '<type>/<message>'."
-  echo "| Where 'type' can be feat-ma, feat-mi, bugfix, hotfix or docsfix."
+  echo "| Where 'type' can be feat-ma, feat-mi, bugfix, hotfix or docfix."
   echo "|"
   exit 1
 fi

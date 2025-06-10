@@ -10,6 +10,7 @@ locals {
   https_port = 443
 }
 
+/*
 #####################################################################
 # WEBSITE DOMAIN NAME ROUTE53 PUBLIC ZONE 
 #####################################################################
@@ -17,6 +18,7 @@ locals {
 data "aws_route53_zone" "website_parent_domain_name" {
   name = var.website_parent_domain_name
 }
+*/
 
 #####################################################################
 # ROOT_DOMAIN BUCKET
@@ -563,6 +565,8 @@ resource "aws_cloudfront_distribution" "sub_domain_distro_blacklist_geo_restrict
 #####################################################################
 
 locals {
+  root_domain_route53_zone_id = data.aws_route53_zone.root_domain.zone_id
+
   root_domain_cf_distro_domain_name = (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? aws_cloudfront_distribution.root_domain_distro_whitelist_geo_restriction[0].domain_name : (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? aws_cloudfront_distribution.root_domain_distro_blacklist_geo_restriction[0].domain_name : (var.enable_website_geo_restriction == false ? aws_cloudfront_distribution.root_domain_distro_non_geo_restriction[0].domain_name : "")))
   root_domain_cf_distro_hosted_zone = (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "whitelist" ? aws_cloudfront_distribution.root_domain_distro_whitelist_geo_restriction[0].hosted_zone_id : (var.enable_website_geo_restriction == true && var.website_geo_restriction_type == "blacklist" ? aws_cloudfront_distribution.root_domain_distro_blacklist_geo_restriction[0].hosted_zone_id : (var.enable_website_geo_restriction == false ? aws_cloudfront_distribution.root_domain_distro_non_geo_restriction[0].hosted_zone_id : "")))
 
@@ -575,7 +579,7 @@ data "aws_route53_zone" "root_domain" {
 }
 
 resource "aws_route53_record" "root_domain" {
-  zone_id = data.aws_route53_zone.root_domain.zone_id
+  zone_id = local.root_domain_route53_zone_id #data.aws_route53_zone.root_domain.zone_id
   name    = local.bucket_name
   type    = "A"
 
@@ -587,7 +591,7 @@ resource "aws_route53_record" "root_domain" {
 }
 
 resource "aws_route53_record" "sub_domain" {
-  zone_id = data.aws_route53_zone.root_domain.zone_id
+  zone_id = local.root_domain_route53_zone_id #data.aws_route53_zone.root_domain.zone_id
   name    = "www.${local.bucket_name}"
   type    = "A"
 
@@ -637,7 +641,7 @@ module "cnvr" {
 
   validation_method                         = "DNS"
   distinct_domain_names                     = module.ssl_cert.distinct_domain_names
-  zone_id                                   = data.aws_route53_zone.website_parent_domain_name
+  zone_id                                   = local.root_domain_route53_zone_id #data.aws_route53_zone.root_domain.zone_id #data.aws_route53_zone.website_parent_domain_name
   acm_certificate_domain_validation_options = module.ssl_cert.acm_certificate_domain_validation_options
 
   tags = {

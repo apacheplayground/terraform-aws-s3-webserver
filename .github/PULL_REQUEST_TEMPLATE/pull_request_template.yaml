@@ -48,7 +48,7 @@ body:
         - label: Hotfix
           value: hotfix
         - label: Documentation Update
-          value: docs
+          value: docfix
     validations:
       required: true
 

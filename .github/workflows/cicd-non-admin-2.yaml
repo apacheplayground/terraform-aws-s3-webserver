@@ -98,7 +98,7 @@ jobs:
 
                     if [[ $DOCSFIX_VERSION_UPDATE_FOUND == "0" ]];
                     then
-                      VERSION_UPDATE_TYPE_1=patch
+                      VERSION_UPDATE_TYPE_1=none
                       VERSION_UPDATE_TYPE_2=docsfix
                     else
                       echo "|"
@@ -138,9 +138,16 @@ jobs:
               NEXT_VERSION_MINOR=$((CURRENT_VERSION_MINOR + 1))
               NEXT_VERSION_PATCH=0
             else
-              NEXT_VERSION_MAJOR=$CURRENT_VERSION_MAJOR
-              NEXT_VERSION_MINOR=$CURRENT_VERSION_MINOR
-              NEXT_VERSION_PATCH=$((CURRENT_VERSION_PATCH + 1))
+              if [[ $VERSION_UPDATE_TYPE_1 == "ptach" ]];
+              then
+                NEXT_VERSION_MAJOR=$CURRENT_VERSION_MAJOR
+                NEXT_VERSION_MINOR=$CURRENT_VERSION_MINOR
+                NEXT_VERSION_PATCH=$((CURRENT_VERSION_PATCH + 1))
+              else
+                NEXT_VERSION_MAJOR=$CURRENT_VERSION_MAJOR
+                NEXT_VERSION_MINOR=$CURRENT_VERSION_MINOR
+                NEXT_VERSION_PATCH=$CURRENT_VERSION_PATCH
+              fi
             fi
 
             NEXT_VERSION="$NEXT_VERSION_MAJOR.$NEXT_VERSION_MINOR.$NEXT_VERSION_PATCH"
@@ -202,7 +209,7 @@ jobs:
                 CHANGELOG_HEADING="Patch (Hotfix)"
                 CHANGELOG_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE_2 }}" | sed -e "s|hotfix/||")
               else
-                CHANGELOG_HEADING="Patch (Docsfix)"
+                CHANGELOG_HEADING="Docsfix"
                 CHANGELOG_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE_2 }}" | sed -e "s|docsfix/||")
               fi
             fi

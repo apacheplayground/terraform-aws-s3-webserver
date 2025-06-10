@@ -5,6 +5,12 @@ on:
     branches:
       - dev
 
+env:
+  AWS_REGION: us-east-1
+  REPO_ADMIN_USER_NAME_PARAMETER: AP_GH_REPOS_ADMIN_USER_NAME 
+  REPO_ADMIN_USER_EMAIL_PARAMETER: AP_GH_REPOS_ADMIN_USER_EMAIL
+  SLACK_WEBHOOK_URL_PARAMETER: AP_SLACK_GHA_NOTIFY_BOT_INCOMING_WEBHOOK_URL
+
 jobs:
   cicd-non-admin-1:
     runs-on: ubuntu-latest
@@ -37,11 +43,35 @@ jobs:
             --base "main" \
             --title ${{ env.COMMIT_MESSAGE }} \
             --body ${{ env.COMMIT_MESSAGE }} > /tmp/pr-url.txt
-          
-      #- name: Notify Repo Admin
-      #  id: notify-repo-admin
-      #  if: ${{ steps.open-pr.outcome == 'success' }}
-      #  run: |
-      #    echo $(cat /tmp/pr-url.txt)
-          
+
+          echo "PR_URL=$(cat /tmp/pr-url.txt)" >> $GITHUB_ENV
+
+      - name: Notify Repo Admin Success
+        id: notify-repo-admin-success
+        if: ${{ steps.open-pr.outcome == 'success' }}
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: |
+              New PR:
+              PR author: ${{ github.actor }}
+              PR URL: ${{ env.PR_URL }}
+
+              @${{ env.SLACK_ADMIN }}, checkout the PR and approve changes for merging.
+
+      - name: Notify Repo Admin Failure
+        id: notify-repo-admin-failure
+        if: ${{ steps.open-pr.outcome == 'failure' }}
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: |
+              Failed PR:
+              @${{ github.actor }}, the PR you tried to open was unsuccessful.
+              Revisit your commit, make any necessary changes and recommit.
+
 ######################################## APACHEPLAYGROUND™ ########################################

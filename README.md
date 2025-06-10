@@ -1,3 +1,6 @@
+[![Banner](./assets/banner.jpg)](https://apacheplayground.com)
+
+
 # AWS S3 Webserver Terraform module
 
 Terraform module to create a webserver on an AWS S3 bucket.

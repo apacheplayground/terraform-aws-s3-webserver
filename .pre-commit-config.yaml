@@ -1,28 +1,42 @@
+default_install_hook_types: [pre-commit, commit-msg]
 repos:
   - repo: local
     hooks:
-      - id: restrict-main-branch-commits-to-gha-runner
-        name: Restrict main branch commits to gha runner
-        entry: sh .github/hooks/restrict-main-branch-commits-to-gha-runner
+      - id: validate-commit-msg
+        name: Validate Commit Message
+        entry: sh .github/hooks/validate-commit-msg
+        language: system
+        types: [file]
+        stages: [commit-msg]
+
+      - id: restrict-main-branch-commits-to-gha-runners
+        name: Restrict Main Branch Commits to GHA Runners
+        entry: sh .github/hooks/restrict-main-branch-commits-to-gha-runners
         language: system
         types: [file]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      - id: check-executables-have-shebangs
+        name: Check if Executables Have Shebangs
+
+      - id: detect-aws-credentials
+        name: Detect AWS Credentials
+        args: [--allow-missing-credentials]
+
       - id: check-merge-conflict
-      #- id: end-of-file-fixer
-  - repo: https://github.com/terraform-docs/terraform-docs
-    rev: v0.19.0
-    hooks:
-      - id: terraform-docs-go
-        name: Terraform docs
-        args: ["markdown", "table", "--output-file", "README.md", "./"]
+        name: Check for Merge Conflicts
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.96.2
     hooks:
-      - id: terraform_fmt 
+      - id: terraform_fmt
+        name: Terraform Format
+
       - id: terraform_validate
+        name: Terraform Validate
         exclude: '^[^/]+$'
+
       #- id: infracost_breakdown
+      #  name: Infrastructure Cost Breakdown 
 
 ######################################## APACHEPLAYGROUND™ ########################################
