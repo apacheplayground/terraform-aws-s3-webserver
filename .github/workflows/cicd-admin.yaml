@@ -29,7 +29,7 @@ jobs:
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AP_AWS_GHA_OIDC_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_GHA_OIDC_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       ###############################################################
