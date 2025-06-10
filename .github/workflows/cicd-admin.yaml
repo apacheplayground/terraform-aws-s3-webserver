@@ -422,16 +422,16 @@ jobs:
             then
               CHANGELOG_HEADING="Feature (Major)"
               CHANGELOG_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE_2 }}" | sed -e "s|feat-ma/||")
-            elif [[ ${{ env.UPDATE_TYPE_2 } == "minor" ]];
+            elif [[ ${{ env.UPDATE_TYPE_2 }} == "minor" ]];
             then
               CHANGELOG_HEADING="Feature (Minor)"
               CHANGELOG_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE_2 }}" | sed -e "s|feat-mi/||")
             else
-              if [[ ${{ env.UPDATE_TYPE_2 } == "bugfix" ]];
+              if [[ ${{ env.UPDATE_TYPE_2 }} == "bugfix" ]];
               then
                 CHANGELOG_HEADING="Patch (Bugfix)"
                 CHANGELOG_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE_2 }}" | sed -e "s|bugfix/||")
-              elif [[ ${{ env.UPDATE_TYPE_2 } == "hotfix" ]];
+              elif [[ ${{ env.UPDATE_TYPE_2 }} == "hotfix" ]];
               then
                 CHANGELOG_HEADING="Patch (Hotfix)"
                 CHANGELOG_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE_2 }}" | sed -e "s|hotfix/||")
